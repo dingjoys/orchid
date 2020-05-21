@@ -9,22 +9,18 @@
 # }}}
 
 
-pwd/nettle := $(pwd)/nettle
+pwd/gmp := $(pwd)/gmp
 
-p_nettle += -I@/$(pwd/gmp)
-l_nettle += -L@/$(pwd/gmp)/.libs
+w_gmp += --enable-maintainer-mode
 
-$(call depend,$(pwd/nettle)/Makefile,@/$(pwd/gmp)/.libs/libgmp.a)
+ifeq ($(target),win)
+# XXX: -fdata-sections breaks libgmp's disassembly sed trick
+w_gmp += gmp_cv_asm_rodata=$$'\t.section\t.rdata,"dr"'
+endif
 
-$(output)/%/$(pwd/nettle)/libnettle.a $(output)/%/$(pwd/nettle)/libhogweed.a: $(output)/%/$(pwd/nettle)/Makefile
-	$(MAKE) -C $(output)/$*/$(pwd/nettle) libnettle.a libhogweed.a
+$(output)/%/$(pwd/gmp)/.libs/libgmp.a: $(output)/%/$(pwd/gmp)/Makefile
+	$(MAKE) -C $(output)/$*/$(pwd/gmp)
 
-linked += $(pwd/nettle)/libnettle.a
-linked += $(pwd/nettle)/libhogweed.a
+linked += $(pwd/gmp)/.libs/libgmp.a
 
 export NETTLE_STATIC := 1
-
-define _
-export NETTLE_$(1) := -L$(CURDIR)/$(output)/$(1)/$(pwd/gmp)/.libs -L$(CURDIR)/$(output)/$(1)/$(pwd/nettle) -lnettle -lhogweed
-endef
-$(each)
